@@ -44,7 +44,7 @@ struct js_event {
 //status : n
 // use int fd = open ( "/dev/input/js0" , /*for blocking: O_RDONLY , non blocking: O_NONBLOCK*/ O_RDONLY ) to open joystick
 
-int read_button_press( int fd , bool output_enable = 1) {
+int read_button_press( int fd , bool output_enable = 0 , bool report_button_release = 0) {
   if (fd > 0 && output_enable) {
     std::cout << "joystick opened" << '\n';
   }
@@ -78,7 +78,11 @@ int read_button_press( int fd , bool output_enable = 1) {
           std::cout << +e.number << '\t';
           std::cout << +e.value << std::endl;
         }
-        return int( e.number );
+
+        if( report_button_release | e.value ) {
+          return int( e.number );
+        }
+
         break;
       }
 
@@ -88,7 +92,11 @@ int read_button_press( int fd , bool output_enable = 1) {
           std::cout << +e.number << '\t';
           std::cout << +e.value << std::endl;
         }
-        return int( e.number );
+
+        if( report_button_release | e.value ) {
+          return int( e.number );
+        }
+
         break;
       }
 
@@ -103,23 +111,27 @@ int read_button_press( int fd , bool output_enable = 1) {
 // need to test this and use xdotool
 // need to get what key integer maps to in xdotool from ncurses
 int set_key_binding( std::map < int , int >& keybindings) {
-  int fd = open ( "/dev/input/js0" , /*for blocking: O_RDONLY , non blocking: O_NONBLOCK*/ O_RDONLY );
-
-  if (fd > 0) {
-    std::cout << "joystick opened" << '\n';
-  }
-
-  else {
-    std::cout << "no joystick available" << '\n';
-    return 0;
-  }
-
   initscr();
   clear();
   nodelay( stdscr , FALSE );
   curs_set( FALSE );
   keypad( stdscr , TRUE );
   noecho();
+
+  int fd = open ( "/dev/input/js0" , /*for blocking: O_RDONLY , non blocking: O_NONBLOCK*/ O_RDONLY );
+
+  if (fd > 0) {
+    printw( "joystick opened" );
+    refresh();
+  }
+
+  else {
+    printw( "no joystick available" );
+    refresh();
+    endwin();
+    return 0;
+  }
+
   //I want to eventualy make a way to have a continuous stream of events available
   //right now i am going to make a basic thing that returns the uint8_t number of the button press
   //
@@ -141,7 +153,7 @@ int set_key_binding( std::map < int , int >& keybindings) {
     int button;
 
     while( getch() != 27 ) {
-      button = read_button_press( fd , 1 );
+      button = read_button_press( fd );
 
       switch ( button ) {
         case -2: {
@@ -165,7 +177,6 @@ int set_key_binding( std::map < int , int >& keybindings) {
     }
 
     while ( !buttons_pressed.empty() ) {
-
       keybindings.insert( std::pair < int , int > ( buttons_pressed.back() , key));
       buttons_pressed.pop_back();
       }
