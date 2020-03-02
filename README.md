@@ -1,3 +1,5 @@
 Ongoing project to map keyboard keys to a joystick using xdotool and linux joystick api
 
-Does not do much yet, just reads the inputs
+joystick.h:
+
+read_button_press(): reads button press and returns only the integer value of the button

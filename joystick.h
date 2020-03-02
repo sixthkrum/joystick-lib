@@ -42,14 +42,14 @@ struct js_event {
 
 //only returns int for now need to make it change to all kinds of input
 //status : n
-int read_button_press() {
-  int fd = open ( "/dev/input/js0" , /*for blocking: O_RDONLY , non blocking: O_NONBLOCK*/ O_RDONLY );
+// use int fd = open ( "/dev/input/js0" , /*for blocking: O_RDONLY , non blocking: O_NONBLOCK*/ O_RDONLY ) to open joystick
 
-  if (fd > 0) {
+int read_button_press( int fd , bool output_enable = 1) {
+  if (fd > 0 && output_enable) {
     std::cout << "joystick opened" << '\n';
   }
 
-  else {
+  else if( fd <= 0 && output_enable) {
     std::cout << "no joystick available" << '\n';
     return -1;
   }
@@ -70,7 +70,32 @@ int read_button_press() {
 
   if ( FD_ISSET ( fd , &rfds) ) {
     read ( fd , &e , sizeof ( e ) );
-    return int(e.number);
+
+    switch ( e.type ) {
+      case JS_EVENT_AXIS: {
+        if( output_enable ) {
+          std::cout << "AXIS" << '\t';
+          std::cout << +e.number << '\t';
+          std::cout << +e.value << std::endl;
+        }
+        return int( e.number );
+        break;
+      }
+
+      case JS_EVENT_BUTTON: {
+        if( output_enable ) {
+          std::cout << "BUTTON" << '\t';
+          std::cout << +e.number << '\t';
+          std::cout << +e.value << std::endl;
+        }
+        return int( e.number );
+        break;
+      }
+
+      default: {
+        break;
+      }
+    }
   }
 
   return -2;
@@ -116,7 +141,7 @@ int set_key_binding( std::map < int , int >& keybindings) {
     int button;
 
     while( getch() != 27 ) {
-      button = read_button_press();
+      button = read_button_press( fd , 1 );
 
       switch ( button ) {
         case -2: {

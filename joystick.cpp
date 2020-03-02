@@ -36,14 +36,6 @@ struct js_event {
 int main()
 {
   int fd = open ( "/dev/input/js0" , /*for blocking: O_RDONLY , non blocking: O_NONBLOCK*/ O_RDONLY );
-  fd_set rfds;
-  timeval tv;
-  int retval;
-
-  tv.tv_sec = 0;
-  tv.tv_usec = 100;
-
-  js_event e;
 
   if (fd > 0) {
     std::cout << "joystick opened" << '\n';
@@ -53,6 +45,15 @@ int main()
     std::cout << "error" << '\n';
     return 0;
   }
+
+  fd_set rfds;
+  timeval tv;
+  int retval;
+
+  tv.tv_sec = 0;
+  tv.tv_usec = 100;
+
+  js_event e;
 
   while (1) {
 
