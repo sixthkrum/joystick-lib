@@ -20,12 +20,15 @@
 
 #include <vector>
 
+#include <array>
+
 #include <iterator>
 
 #include <map>
 
 #include <ncurses.h>
 
+#include <xdo.h>
 
 #define JS_EVENT_BUTTON 0x01
 
@@ -44,14 +47,14 @@ struct js_event {
 //status : n
 // use int fd = open ( "/dev/input/js0" , /*for blocking: O_RDONLY , non blocking: O_NONBLOCK*/ O_RDONLY ) to open joystick
 
-int read_button_press( int fd , bool output_enable = 0 , bool report_button_release = 0) {
+std::array < int , 2 > read_button_press( int fd , bool output_enable = 0 , bool report_button_release = 0) {
   if (fd > 0 && output_enable) {
     std::cout << "joystick opened" << '\n';
   }
 
   else if( fd <= 0 && output_enable) {
     std::cout << "no joystick available" << '\n';
-    return -1;
+    return { -1 , 0 };
   }
 
   fd_set rfds;
@@ -71,6 +74,8 @@ int read_button_press( int fd , bool output_enable = 0 , bool report_button_rele
   if ( FD_ISSET ( fd , &rfds) ) {
     read ( fd , &e , sizeof ( e ) );
 
+  std::array < int , 2 > button;
+
     switch ( e.type ) {
       case JS_EVENT_AXIS: {
         if( output_enable ) {
@@ -80,7 +85,9 @@ int read_button_press( int fd , bool output_enable = 0 , bool report_button_rele
         }
 
         if( report_button_release | e.value ) {
-          return int( e.number );
+          button [0] = int ( e.type );
+          button [1] = int ( e.number );
+          return button;
         }
 
         break;
@@ -94,7 +101,9 @@ int read_button_press( int fd , bool output_enable = 0 , bool report_button_rele
         }
 
         if( report_button_release | e.value ) {
-          return int( e.number );
+          button [0] = int ( e.type );
+          button [1] = int ( e.number );
+          return button;
         }
 
         break;
@@ -106,13 +115,12 @@ int read_button_press( int fd , bool output_enable = 0 , bool report_button_rele
     }
   }
 
-  return -2;
+  return { -2 , 0 };
 }
 // need to test this and use xdotool
 // need to get what key integer maps to in xdotool from ncurses
-int set_key_binding( std::map < int , int >& keybindings) {
+int set_key_binding( std::map < std::array < int , 2 > , int >& keybindings) {
   initscr();
-  clear();
   nodelay( stdscr , FALSE );
   curs_set( FALSE );
   keypad( stdscr , TRUE );
@@ -136,6 +144,7 @@ int set_key_binding( std::map < int , int >& keybindings) {
   //right now i am going to make a basic thing that returns the uint8_t number of the button press
   //
   while ( TRUE ) {
+    clear();
     mvprintw( 0 , 0 , "enter key to bind buttons to: " );
     refresh();
 
@@ -146,21 +155,22 @@ int set_key_binding( std::map < int , int >& keybindings) {
     mvprintw( 1 , 0 , "press buttons that will map to the key press ESC to stop: " );
     refresh();
 
-    std::vector < int > buttons_pressed;
+    std::vector < std::array < int , 2 > > buttons_pressed;
 
     nodelay( stdscr , TRUE );
 
-    int button;
+    std::array < int , 2 > button;
 
     while( getch() != 27 ) {
       button = read_button_press( fd );
 
-      switch ( button ) {
+      switch ( button [0] ) {
         case -2: {
           break;
         }
 
         case -1: {
+          clear();
           mvprintw( 2 , 0 , "the joystick has been disconnected, saving partial map and exiting");
           refresh();
           endwin();
@@ -177,12 +187,13 @@ int set_key_binding( std::map < int , int >& keybindings) {
     }
 
     while ( !buttons_pressed.empty() ) {
-      keybindings.insert( std::pair < int , int > ( buttons_pressed.back() , key));
+      keybindings.insert( std::pair < std::array < int , 2 > , int > ( buttons_pressed.back() , key));
       buttons_pressed.pop_back();
       }
 
-    std::vector < int > ().swap( buttons_pressed );
+    std::vector < std::array < int , 2 > > ().swap( buttons_pressed );
 
+    clear();
     mvprintw( 3 , 0 , "bind another key? press y to continue");
     refresh();
 
