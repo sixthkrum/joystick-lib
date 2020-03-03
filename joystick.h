@@ -155,8 +155,6 @@ int set_key_binding( std::map < std::array < int , 2 > , int >& keybindings) {
     mvprintw( 1 , 0 , "press buttons that will map to the key press ESC to stop: " );
     refresh();
 
-    std::vector < std::array < int , 2 > > buttons_pressed;
-
     nodelay( stdscr , TRUE );
 
     std::array < int , 2 > button;
@@ -179,19 +177,12 @@ int set_key_binding( std::map < std::array < int , 2 > , int >& keybindings) {
         }
 
         default: {
-          printw( "\t%d" , button);
-          buttons_pressed.push_back ( button );
+          printw( "%d\t" , button [1] );
+          keybindings.insert( std::pair < std::array < int , 2 > , int > ( button , key ) );
           break;
         }
       }
     }
-
-    while ( !buttons_pressed.empty() ) {
-      keybindings.insert( std::pair < std::array < int , 2 > , int > ( buttons_pressed.back() , key));
-      buttons_pressed.pop_back();
-      }
-
-    std::vector < std::array < int , 2 > > ().swap( buttons_pressed );
 
     clear();
     mvprintw( 3 , 0 , "bind another key? press y to continue");
