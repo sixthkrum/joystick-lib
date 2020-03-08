@@ -128,7 +128,7 @@ int set_key_binding( std::map < std::array < int , 3 > , int >& keybindings) {
         }
 
         default: {
-          printw( "%d\t" , button [1] );
+          printw( "\n%d\t%d\t%d\t" , button [0] , button [1] , button [2] );
           keybindings.insert( std::pair < std::array < int , 3 > , int > ( button , key ) );
           break;
         }
