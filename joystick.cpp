@@ -43,9 +43,7 @@ std::array < int , 3 > read_button_press( int fd , bool output_enable , bool rep
           button [2] = int ( e.value );
           return button;
         }
-
-        break;
-      }
+      } break;
 
       case JS_EVENT_BUTTON: {
         if( output_enable ) {
@@ -60,13 +58,10 @@ std::array < int , 3 > read_button_press( int fd , bool output_enable , bool rep
           button [2] = int ( e.value );
           return button;
         }
-
-        break;
-      }
+      } break;
 
       default: {
-        break;
-      }
+      } break;
     }
   }
 
@@ -115,8 +110,7 @@ int set_key_binding( std::map < std::array < int , 3 > , int >& keybindings) {
 
       switch ( button [0] ) {
         case -2: {
-          break;
-        }
+        } break;
 
         case -1: {
           clear();
@@ -125,13 +119,12 @@ int set_key_binding( std::map < std::array < int , 3 > , int >& keybindings) {
           endwin();
           // need to save map here
           return -1;
-        }
+        } break;
 
         default: {
           printw( "\n%d\t%d\t%d\t" , button [0] , button [1] , button [2] );
           keybindings.insert( std::pair < std::array < int , 3 > , int > ( button , key ) );
-          break;
-        }
+        } break;
       }
     }
 
