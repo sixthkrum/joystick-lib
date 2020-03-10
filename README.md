@@ -6,6 +6,10 @@ read_button_press(): reads button press and returns only the integer value of th
 
 Makefile:
 
-sudo make
+sudo make : compiles the local library files
 
-sudo make clean
+sudo make install : installs the library to the system
+
+sudo make clean : deletes local compiled library
+
+sudo make uninstall : uninstalls the library from the system
