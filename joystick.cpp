@@ -6,15 +6,15 @@ bool write_map_to_file ( std::map < std::array < int , 3 > , int > keybindings ,
 
   if ( append_flag )
   {
-    map_file.open ( MAP_PATH , std::ios::binary | std::ios::out | std::ios::app );
+    map_file.open ( MAP_PATH + "map.bin" , std::ios::binary | std::ios::out | std::ios::app );
   }
 
   else
   {
-    remove ( MAP_PATH );
-    map_file.open ( MAP_PATH , std::ios::binary | std::ios::out );
+    remove ( ( MAP_PATH + "map.bin" ).c_str() );
+    map_file.open ( MAP_PATH + "map.bin" , std::ios::binary | std::ios::out );
   }
-//replace map path with some macro to find path of directory and then append path of joystcick
+
   std::map < std::array < int , 3 > , int > :: iterator i;
 
   for ( i = keybindings.begin() ; i != keybindings.end() ; i ++ )
@@ -27,13 +27,13 @@ bool write_map_to_file ( std::map < std::array < int , 3 > , int > keybindings ,
 
   map_file.close();
 
-  return 1; //look into serialization here
+  return 1;
 }
 
 bool read_map_from_file ( std::map < std::array < int , 3 > , int >& keybindings )
 {
   std::fstream map_file;
-  map_file.open ( MAP_PATH , std::ios::binary | std::ios::in );
+  map_file.open ( MAP_PATH + "map.bin" , std::ios::binary | std::ios::in );
 
   std::array < int , 3 > button;
   int key;
@@ -47,7 +47,9 @@ bool read_map_from_file ( std::map < std::array < int , 3 > , int >& keybindings
     keybindings.insert ( std::pair < std::array < int , 3 > , int > ( button , key ) );
   }
 
-  return 1;//need to do the same path stuff here
+  map_file.close();
+
+  return 1;
 }
 
 std::array < int , 3 > read_button_press ( int fd , bool output_enable , bool report_button_release )

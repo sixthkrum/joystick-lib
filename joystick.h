@@ -16,13 +16,24 @@
 
 #include <string.h>
 
+#include <string>
+
 #define JS_EVENT_BUTTON 0x01
 
 #define JS_EVENT_AXIS 0x02
 
 #define JS_EVENT_INIT 0x80
 
-#define MAP_PATH "/home/user/.joystickconfig/map.bin"
+std::string config_path()
+{
+  std::string path;
+  path = getenv ( "HOME" );
+  path = path + "/.joystickconfig/";
+
+  return path;
+}
+
+#define MAP_PATH config_path()
 
 struct js_event
 {
