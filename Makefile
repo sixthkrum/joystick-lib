@@ -7,6 +7,8 @@ joystick.o:	joystick.h
 install: libjoystick.so.1.0.1
 	mkdir	~/.joystickconfig
 	touch	~/.joystickconfig/map.bin
+	chown	-R	user ~/.joystickconfig
+	chmod	-R	755 ~/.joystickconfig
 	cp	-f	joystick.h	/usr/local/include/joystick.h
 	cp	-f	libjoystick.so.1.0.1	/usr/local/lib/libjoystick.so.1.0.1
 	ln	-s	/usr/local/lib/libjoystick.so.1.0.1 /usr/local/lib/libjoystick.so
@@ -24,4 +26,3 @@ uninstall:
 clean:
 	rm	-f	joystick.o
 	rm	-f	libjoystick.so.1.0.1
-	rm	-f	libjoystick.so
