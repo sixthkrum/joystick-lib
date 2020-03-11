@@ -1,22 +1,25 @@
+#ifndef _JOYSTICK_H_
+#define _JOYSTICK_H_
+
 #include <iostream>
 
 #include <fcntl.h>
 
 #include <fstream>
 
+#include <map>
+
 #include <array>
+
+#include <string>
 
 #include <iterator>
 
-#include <map>
+extern "C"
+{
+  #include <xdo.h>
+}
 
-#include <ncurses.h>
-
-#include <xdo.h>
-
-#include <string.h>
-
-#include <string>
 
 #define JS_EVENT_BUTTON 0x01
 
@@ -24,16 +27,11 @@
 
 #define JS_EVENT_INIT 0x80
 
-std::string config_path()
-{
-  std::string path;
-  path = getenv ( "HOME" );
-  path = path + "/.joystickconfig/";
+#define TRUE 1
 
-  return path;
-}
+#define FALSE 0
 
-#define MAP_PATH config_path()
+#define END_OF_ENTRY 0
 
 struct js_event
 {
@@ -43,10 +41,12 @@ struct js_event
   uint8_t number;
 };
 
-bool write_map_to_file ( std::map < std::array < int , 3 > , int > keybindings , bool append_flag = 0 );
+bool write_map_to_file ( std::map < std::array < int , 3 > , std::string > keybindings , bool append_flag = 0 );
 
-bool read_map_from_file ( std::map < std::array < int , 3 > , int >& keybindings );
+bool read_map_from_file ( std::map < std::array < int , 3 > , std::string >& keybindings );
 
-std::array < int , 3 > read_button_press ( int fd , bool output_enable = 0 , bool report_button_release = 0 );
+std::array < int , 3 > read_button_press ( int fd , unsigned int block_time_usec = 0 , bool output_enable = 0 , bool report_button_release = 0 );
 
-bool set_key_binding ( std::map < std::array < int , 3 > , int >& keybindings , int fd );
+bool set_key_binding ( std::map < std::array < int , 3 > , std::string >& keybindings , int fd );
+
+#endif

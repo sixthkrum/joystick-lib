@@ -1,6 +1,17 @@
 #include "joystick.h"
 
-bool write_map_to_file ( std::map < std::array < int , 3 > , int > keybindings , bool append_flag )
+std::string config_path()
+{
+  std::string path;
+  path = getenv ( "HOME" );
+  path = path + "/.joystickconfig/";
+
+  return path;
+}
+
+#define MAP_PATH config_path()
+
+bool write_map_to_file ( std::map < std::array < int , 3 > , std::string > keybindings , bool append_flag )
 {
   std::fstream map_file;
 
@@ -15,14 +26,16 @@ bool write_map_to_file ( std::map < std::array < int , 3 > , int > keybindings ,
     map_file.open ( MAP_PATH + "map.bin" , std::ios::binary | std::ios::out );
   }
 
-  std::map < std::array < int , 3 > , int > :: iterator i;
+  std::map < std::array < int , 3 > , std::string > :: iterator i;
+  char end_of_entry_flag = END_OF_ENTRY;
 
   for ( i = keybindings.begin() ; i != keybindings.end() ; i ++ )
   {
     map_file.write ( ( char* ) & i -> first [0] , sizeof ( int ) );
     map_file.write ( ( char* ) & i -> first [1] , sizeof ( int ) );
     map_file.write ( ( char* ) & i -> first [2] , sizeof ( int ) );
-    map_file.write ( ( char* ) & i -> second , sizeof ( int ) );
+    map_file.write ( ( char* ) & i -> second [0] , i -> second.length() );
+    map_file.write ( ( char* ) & end_of_entry_flag , 1 );
   }
 
   map_file.close();
@@ -30,21 +43,30 @@ bool write_map_to_file ( std::map < std::array < int , 3 > , int > keybindings ,
   return 1;
 }
 
-bool read_map_from_file ( std::map < std::array < int , 3 > , int >& keybindings )
+bool read_map_from_file ( std::map < std::array < int , 3 > , std::string >& keybindings )
 {
   std::fstream map_file;
   map_file.open ( MAP_PATH + "map.bin" , std::ios::binary | std::ios::in );
 
   std::array < int , 3 > button;
-  int key;
+  std::string key , temp;
 
   while ( map_file.peek() != EOF )
   {
     map_file.read ( ( char* ) & button [0] , sizeof ( int ) );
     map_file.read ( ( char* ) & button [1] , sizeof ( int ) );
     map_file.read ( ( char* ) & button [2] , sizeof ( int ) );
-    map_file.read ( ( char* ) & key , sizeof ( int ) );
-    keybindings.insert ( std::pair < std::array < int , 3 > , int > ( button , key ) );
+
+    map_file.read ( ( char* ) & temp [0] , 1 );
+    key.clear();
+
+    while ( char ( temp [0] ) != END_OF_ENTRY )
+    {
+      key = key + temp [0];
+      map_file.read ( ( char* ) & temp [0] , 1 );
+    }
+
+    keybindings.insert ( std::pair < std::array < int , 3 > , std::string > ( button , key ) );
   }
 
   map_file.close();
@@ -52,7 +74,7 @@ bool read_map_from_file ( std::map < std::array < int , 3 > , int >& keybindings
   return 1;
 }
 
-std::array < int , 3 > read_button_press ( int fd , bool output_enable , bool report_button_release )
+std::array < int , 3 > read_button_press ( int fd , unsigned int block_time_usec , bool output_enable , bool report_button_release )
 {
   if ( fd > 0 && output_enable )
   {
@@ -71,18 +93,18 @@ std::array < int , 3 > read_button_press ( int fd , bool output_enable , bool re
   int retval;
 
   tv.tv_sec = 0;
-  tv.tv_usec = 100;
+  tv.tv_usec = block_time_usec;
 
   FD_ZERO ( &rfds );
   FD_SET ( fd , &rfds );
 
-  retval = select ( fd + 1 , &rfds , NULL , NULL , &tv );
+  select ( fd + 1 , &rfds , NULL , NULL , &tv );
 
   js_event e;
 
-  if ( FD_ISSET ( fd , &rfds ) )
+  if ( block_time_usec == 0 || FD_ISSET ( fd , &rfds ) )
   {
-    read ( fd , &e , sizeof ( e ) );
+    read ( fd , &e , sizeof ( js_event ) );
 
     std::array < int , 3 > button;
 
@@ -134,89 +156,65 @@ std::array < int , 3 > read_button_press ( int fd , bool output_enable , bool re
   return { -2 , 0 , 0 };
 }
 
-bool set_key_binding ( std::map < std::array < int , 3 > , int >& keybindings , int fd )
+bool set_key_binding ( std::map < std::array < int , 3 > , std::string >& keybindings , int fd )
 {
-  initscr();
-  nodelay ( stdscr , FALSE );
-  curs_set ( FALSE );
-  keypad ( stdscr , TRUE );
-  noecho();
 
   if (fd > 0)
   {
-    printw ( "joystick opened" );
-    refresh();
-    usleep ( 500000 ); //0.5 second sleep
+    std::cout << "joystick opened" << std::endl;
   }
 
   else
   {
-    printw ( "no joystick available" );
-    refresh();
+    std::cout << "no joystick available" << std::endl;
     usleep ( 500000 ); //0.5 second sleep
-    endwin();
     return 0;
   }
 
   while ( TRUE )
   {
-    clear();
-    mvprintw ( 0 , 0 , "enter key to bind buttons to: " );
-    refresh();
+    std::cout << "enter X11 keysym to bind button to (seperate by + for multi): " << std::endl;
 
-    int key;
-    key = getch();
-    printw ( "%d" , key );
-
-    mvprintw ( 1 , 0 , "press buttons that will map to the key press ESC to stop: " );
-    refresh();
-
-    nodelay ( stdscr , TRUE );
+    std::string key;
+    std::cin >> key;
+//need to check if the keysequence is valid here
+    std::cout << "press button that will map to the key: " << std::endl;
 
     std::array < int , 3 > button;
 
-    while ( getch() != 27 )
+    button = read_button_press ( fd );
+
+    switch ( button [0] )
     {
-      button = read_button_press ( fd );
-
-      switch ( button [0] )
+      case -2:
       {
-        case -2:
-        {//handle error here
-        } break;
+        std::cout << "error" << '\n';
+      } break;
 
-        case -1:
-        {
-          clear();
-          mvprintw ( 2 , 0 , "the joystick has been disconnected, exiting" );
-          refresh();
-          usleep ( 500000 ); //0.5 second sleep
-          endwin();
+      case -1:
+      {
+        std::cout << "the joystick has been disconnected, exiting" << std::endl;
+        usleep ( 500000 ); //0.5 second sleep
 
-          return -1;
-        } break;
+        return -1;
+      } break;
 
-        default:
-        {
-          printw ( "\n%d\t%d\t%d\t" , button [0] , button [1] , button [2] );
-          keybindings.insert ( std::pair < std::array < int , 3 > , int > ( button , key ) );
-        } break;
+      default:
+      {
+        std::cout << button [0] << '\t' << button [1] << '\t' << button [2];
+        keybindings.insert ( std::pair < std::array < int , 3 > , std::string > ( button , key ) );
+      } break;
 
-      }
     }
 
-    clear();
-    mvprintw ( 0 , 0 , "bind another key? press y to continue" );
-    refresh();
+    std::cout << '\n' << "bind another key? enter y to continue" << std::endl;
 
-    nodelay ( stdscr , FALSE );
-
-    int choice;
-
-    choice = getch();
+    char choice;
+    std::cin >> choice;
 
     if ( choice == 'y' || choice == 'Y' )
     {
+      system ( "clear" );
       continue;
     }
 
@@ -227,8 +225,10 @@ bool set_key_binding ( std::map < std::array < int , 3 > , int >& keybindings , 
 
   }
 
-clear();
-endwin();
-
 return 1;
+}
+
+bool simulate_mapped_key ( std::array < int , 3 > button )
+{
+
 }
