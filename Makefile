@@ -1,9 +1,13 @@
 libjoystick.so.1.0.1:	joystick.o
-	g++	-shared	-Wl,-soname,libjoystick.so.1	-o	libjoystick.so.1.0.1	joystick.o	-lncurses
+	g++	-shared	-Wl,-soname,libjoystick.so.1	-o	libjoystick.so.1.0.1	joystick.o	-lxdo
 
 joystick.o:	joystick.h
 	g++	-fPIC	-g	-c	joystick.cpp
 
+.PHONY: reinstall
+reinstall:	uninstall clean install
+
+.PHONY:	install
 install: libjoystick.so.1.0.1
 	mkdir	~/.joystickconfig
 	touch	~/.joystickconfig/map.bin
@@ -14,6 +18,7 @@ install: libjoystick.so.1.0.1
 	ln	-s	/usr/local/lib/libjoystick.so.1.0.1 /usr/local/lib/libjoystick.so
 	ldconfig
 
+.PHONY:	uninstall
 uninstall:
 	rm	-rf	~/.joystickconfig
 	rm	-f	/usr/local/include/joystick.h
