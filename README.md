@@ -14,6 +14,8 @@ read_map_from_file: read map from file
 
 write_map_to_file: writes map to file
 
+simulate_mapped_key: sends bound key ( or sequence ) to current window
+
 saves map to $HOME/.joystickconfig/map.bin
 
 Makefile:
