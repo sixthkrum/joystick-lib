@@ -1,5 +1,7 @@
 Ongoing project to map keyboard keys to a joystick using xdotool and linux joystick api
 
+to compile projects using this link libxdo and libjoystick, trying to figure out a linker thing
+
 dependencies:
 
 LIBXDO: https://github.com/jordansissel/xdotool follow installation instructions there
