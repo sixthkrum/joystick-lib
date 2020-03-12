@@ -20,7 +20,6 @@ extern "C"
   #include <xdo.h>
 }
 
-
 #define JS_EVENT_BUTTON 0x01
 
 #define JS_EVENT_AXIS 0x02
@@ -41,6 +40,17 @@ struct js_event
   uint8_t number;
 };
 
+std::string config_path()
+{
+  std::string path;
+  path = getenv ( "HOME" );
+  path = path + "/.joystickconfig/";
+
+  return path;
+}
+
+#define MAP_PATH config_path()
+
 bool write_map_to_file ( std::map < std::array < int , 3 > , std::string > keybindings , bool append_flag = 0 );
 
 bool read_map_from_file ( std::map < std::array < int , 3 > , std::string >& keybindings );
@@ -48,5 +58,9 @@ bool read_map_from_file ( std::map < std::array < int , 3 > , std::string >& key
 std::array < int , 3 > read_button_press ( int fd , unsigned int block_time_usec = 0 , bool output_enable = 0 , bool report_button_release = 0 );
 
 bool set_key_binding ( std::map < std::array < int , 3 > , std::string >& keybindings , int fd );
+
+void empty_joystick_device ( int fd );
+
+int simulate_mapped_key ( const xdo_t *x , std::array < int , 3 > button , std::map < std::array < int , 3 > , std::string > &keybindings , bool output_enable = 0 );
 
 #endif

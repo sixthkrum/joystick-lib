@@ -1,15 +1,35 @@
 #include "joystick.h"
 
-std::string config_path()
+extern "C"
 {
-  std::string path;
-  path = getenv ( "HOME" );
-  path = path + "/.joystickconfig/";
-
-  return path;
+  #include "/usr/local/include/xdo.h"
 }
 
-#define MAP_PATH config_path()
+void empty_joystick_device ( int fd )
+{
+  fd_set rfds;
+  timeval tv;
+  int retval;
+  js_event e;
+
+  do
+  {
+    tv.tv_sec = 0;
+    tv.tv_usec = 0;
+
+    FD_ZERO ( &rfds );
+    FD_SET ( fd , &rfds );
+
+    retval = select ( fd + 1 , &rfds , NULL , NULL , &tv );
+
+    if ( FD_ISSET(fd,&rfds) )
+    {
+      read ( fd , &e , sizeof ( e ) );
+    }
+
+  } while( retval > 0 );
+
+}
 
 bool write_map_to_file ( std::map < std::array < int , 3 > , std::string > keybindings , bool append_flag )
 {
@@ -86,6 +106,11 @@ std::array < int , 3 > read_button_press ( int fd , unsigned int block_time_usec
     std::cout << "no joystick available" << '\n';
     usleep ( 500000 ); //0.5 second sleep
     return { -1 , 0 , 0 };
+  }
+
+  if ( block_time_usec == 0 )
+  {
+    empty_joystick_device ( fd );
   }
 
   fd_set rfds;
@@ -228,7 +253,29 @@ bool set_key_binding ( std::map < std::array < int , 3 > , std::string >& keybin
 return 1;
 }
 
-bool simulate_mapped_key ( std::array < int , 3 > button )
+// don't leave error checking to xdotool
+
+int simulate_mapped_key ( const xdo_t *x , std::array < int , 3 > button , std::map < std::array < int , 3 > , std::string > &keybindings , bool output_enable )
 {
+  std::string key;
+  int retval;
+
+  try
+  {
+    key = keybindings.at ( button );
+    std::cout << key << std::endl;
+    retval = xdo_send_keysequence_window ( x , CURRENTWINDOW , key.c_str() , 0 );
+  }
+
+  catch ( std::out_of_range )
+  {
+    if ( output_enable )
+    {
+      std::cout << "nothing mapped to this button" << std::endl;
+    }
+
+  }
+
+  return retval;
 
 }
