@@ -1,5 +1,3 @@
-BSD 3-clause "New" or "Revised" License
-
 Copyright 2020 Vikram Alagh
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
