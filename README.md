@@ -8,15 +8,17 @@ LIBXDO: https://github.com/jordansissel/xdotool follow installation instructions
 
 xjs.h:
 
-read_button_press: reads button press and returns only the integer value of the button
+(look at file for more information) 
 
-set_key_binding: writes read button presses and binds them to a key
+read_button_press: reads button press and returns value type and release or pressed state
 
-read_map_from_file: read map from file
+set_key_binding: writes read button presses or releases and binds them to a key
+
+read_map_from_file: reads map from file
 
 write_map_to_file: writes map to file
 
-simulate_mapped_key: sends bound key ( or sequence ) to current window
+simulate_mapped_key: sends bound key ( or sequence ) to specified xdo instance and window
 
 saves map to $HOME/.xjsconfig/map.bin
 
