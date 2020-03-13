@@ -7,7 +7,7 @@
 
 #include <fstream>
 
-#include <map>
+#include <unordered_map>
 
 #include <array>
 
@@ -60,16 +60,35 @@ std::string config_path()
 #define MAP_PATH config_path()
 
 /*
+custom hash function for std::array < int , 3 >
+*/
+
+namespace std
+{
+  template<> struct hash < std::array < int , 3 > >
+  {
+    std::size_t operator() ( std::array < int , 3 > const& a ) const noexcept
+    {
+      std::size_t h1 = std::hash < int > {} ( a [0] );
+      std::size_t h2 = std::hash < int > {} ( a [1] );
+      std::size_t h3 = std::hash < int > {} ( a [2] );
+
+      return ( h1 ^ (h2 << 1) ) ^ ( h3 << 1 );
+    }
+  };
+}
+
+/*
 writes the configured map to file, $HOME/.xjsconfig/map.bin
 
 std::map < std::array < int , 3 > , std::string > keybindings : std::map that maps buttons to keysyms
-bool append_flag : true to add to existing map.bin file, false to make a new map.bin map_file
+bool append_flag : true to add to existing map.bin file, false to make a new map.bin map_file. Solves conflicting bindings by choosing new one.
 
 returns true if file is written to successfully
         false otherwise
 */
 
-bool write_map_to_file ( std::map < std::array < int , 3 > , std::string > &keybindings , bool append_flag = 0 );
+bool write_map_to_file ( std::unordered_map < std::array < int , 3 > , std::string > &keybindings , bool append_flag = 0 );
 
 /*
 reads the configured map from file, $HOME/.xjsconfig/map.bin
@@ -80,7 +99,7 @@ returns true if file id read from successfully
         false otherwise
 */
 
-bool read_map_from_file ( std::map < std::array < int , 3 > , std::string > &keybindings );
+bool read_map_from_file ( std::unordered_map < std::array < int , 3 > , std::string > &keybindings );
 
 /*
 returns first valid button press or release from joystick device
@@ -109,7 +128,7 @@ returns false if binding is unsuccessful
         true if successfull
 */
 
-bool set_key_binding ( int fd , std::map < std::array < int , 3 > , std::string > &keybindings , bool report_button_release = 0 );
+bool set_key_binding ( int fd , std::unordered_map < std::array < int , 3 > , std::string > &keybindings , bool report_button_release = 0 );
 
 /*
 empties the given joystick device by reading all available events
@@ -132,6 +151,6 @@ bool output_enable : true to enable output false otherwise
 returns value returned by xdo_send_keysequence_window in functionwhile( e.type != JS_EVENT_AXIS && e.type != JS_EVENT_BUTTON && retval != 0 )
 */
 
-int simulate_mapped_key ( const xdo_t *x , Window window , std::array < int , 3 > button , std::map < std::array < int , 3 > , std::string > &keybindings , bool output_enable = 0 );
+int simulate_mapped_key ( const xdo_t *x , Window window , std::array < int , 3 > button , std::unordered_map < std::array < int , 3 > , std::string > &keybindings , bool output_enable = 0 );
 
 #endif
