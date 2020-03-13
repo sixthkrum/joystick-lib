@@ -1,5 +1,5 @@
 libjoystick.so.1.0.1:	joystick.o
-	g++	-shared	-Wl,-soname,libjoystick.so.1	-o	libjoystick.so.1.0.1	joystick.o	-lxdo
+	g++	-shared	-Wl,-soname,libjoystick.so.1	-Wl,--no-undefined	-o	libjoystick.so.1.0.1	joystick.o	-lxdo
 
 joystick.o:	joystick.h
 	g++	-fPIC	-g	-c	joystick.cpp
