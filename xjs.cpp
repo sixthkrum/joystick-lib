@@ -150,7 +150,7 @@ std::array < int , 3 > read_button_press ( int fd , timeval *block_time , bool e
   if ( block_time == NULL || FD_ISSET ( fd , &rfds ) )
   {
 
-    read ( fd , &temp , sizeof ( js_event ) );
+    read ( fd , &e , sizeof ( js_event ) );
 
     while( e.type != JS_EVENT_AXIS && e.type != JS_EVENT_BUTTON && retval != 0 )
     {
