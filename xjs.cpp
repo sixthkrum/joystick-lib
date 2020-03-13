@@ -1,4 +1,4 @@
-#include "joystick.h"
+#include "xjs.h"
 
 void empty_joystick_device ( int fd )
 {
@@ -26,27 +26,37 @@ void empty_joystick_device ( int fd )
 
 }
 
-bool write_map_to_file ( std::map < std::array < int , 3 > , std::string > &keybindings , bool append_flag )
+bool write_map_to_file ( std::unordered_map < std::array < int , 3 > , std::string > &keybindings , bool append_flag )
 {
   std::fstream map_file;
 
   if ( append_flag )
   {
-    map_file.open ( MAP_PATH + "map.bin" , std::ios::binary | std::ios::out | std::ios::app );
+    std::unordered_map < std::array < int , 3 > , std::string > temp;
+    read_map_from_file ( temp );
+
+    std::unordered_map < std::array < int , 3 > , std::string > :: iterator i;
+
+    for ( i = temp.begin() ; i != temp.end() ; i ++ )
+    {
+      if ( keybindings [ i -> first ] == "" )
+      {
+        keybindings [ i -> first ] = i -> second;
+      }
+    }
+    
   }
 
-  else
-  {
-    remove ( ( MAP_PATH + "map.bin" ).c_str() );
-    map_file.open ( MAP_PATH + "map.bin" , std::ios::binary | std::ios::out );
-  }
+  remove ( ( MAP_PATH + "map.bin" ).c_str() );
+  map_file.open ( MAP_PATH + "map.bin" , std::ios::binary | std::ios::out );
 
   if ( map_file.bad() )
   {
     return 0;
   }
 
-  std::map < std::array < int , 3 > , std::string > :: iterator i;
+  std::unordered_map < std::array < int , 3 > , std::string > :: iterator i;
+
   char end_of_entry_flag = END_OF_ENTRY;
 
   for ( i = keybindings.begin() ; i != keybindings.end() ; i ++ )
@@ -69,7 +79,7 @@ bool write_map_to_file ( std::map < std::array < int , 3 > , std::string > &keyb
   return 1;
 }
 
-bool read_map_from_file ( std::map < std::array < int , 3 > , std::string > &keybindings )
+bool read_map_from_file ( std::unordered_map < std::array < int , 3 > , std::string > &keybindings )
 {
   std::fstream map_file;
   map_file.open ( MAP_PATH + "map.bin" , std::ios::binary | std::ios::in );
@@ -213,7 +223,7 @@ std::array < int , 3 > read_button_press ( int fd , timeval *block_time , bool e
   return { -2 , 0 , 0 };
 }
 
-bool set_key_binding ( int fd , std::map < std::array < int , 3 > , std::string > &keybindings , bool report_button_release )
+bool set_key_binding ( int fd , std::unordered_map < std::array < int , 3 > , std::string > &keybindings , bool report_button_release )
 {
 
   if (fd > 0)
@@ -289,7 +299,7 @@ bool set_key_binding ( int fd , std::map < std::array < int , 3 > , std::string 
 return 1;
 }
 
-int simulate_mapped_key ( const xdo_t *x , Window window , std::array < int , 3 > button , std::map < std::array < int , 3 > , std::string > &keybindings , bool output_enable )
+int simulate_mapped_key ( const xdo_t *x , Window window , std::array < int , 3 > button , std::unordered_map < std::array < int , 3 > , std::string > &keybindings , bool output_enable )
 {
   std::string key;
   int retval;
