@@ -1,6 +1,6 @@
 Ongoing project to map keyboard keys to a joystick using xdotool and linux joystick api
 
-to compile projects using this link libxdo and libxjs, trying to figure out a linker thing
+to compile using this link both libxdo and libxjs
 
 dependencies:
 
@@ -8,7 +8,7 @@ LIBXDO: https://github.com/jordansissel/xdotool follow installation instructions
 
 xjs.h:
 
-(look at file for more information) 
+(look at file for more information)
 
 read_button_press: reads button press and returns value type and release or pressed state
 
