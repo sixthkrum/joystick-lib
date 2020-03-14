@@ -1,5 +1,5 @@
 libxjs.so.1.0.1:	xjs.o
-	g++	-shared	-Wl,-soname,libxjs.so.1	-Wl,--no-undefined	-o	libxjs.so.1.0.1	xjs.o	-lxdo
+	g++	-shared	-Wl,-soname,libxjs.so.1	-o	libxjs.so.1.0.1	xjs.o	-lxdo
 
 xjs.o:	xjs.h
 	g++	-fPIC	-g	-c	xjs.cpp
