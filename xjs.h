@@ -60,7 +60,7 @@ std::string config_path()
 #define MAP_PATH config_path()
 
 /*
-custom hash function for std::array < int , 3 >
+custom hash function for std::array < int , 3 > from https://en.cppreference.com/w/cpp/utility/hash
 */
 
 namespace std
